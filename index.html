@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Karhutla: Satu Rantai Kejadian | IPA Terpadu</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Newsreader:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#1d1510;--panel:#2a1e16;--line:#4a372a;--ink:#efe6d8;--mute:#b3a28d;--ember:#ff7a1a;--g:#8fa67c;--k:#ff7a1a;--f:#6fb3d9;--b:#e08aab;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 'Newsreader',Georgia,serif}
+h1,h2,h3,.ui,label,button{font-family:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif}
+h1{font-size:clamp(2.2rem,6vw,4rem);line-height:1.02;margin:0 0 .6rem;font-weight:800;letter-spacing:-.02em}
+h2{margin:0 0 .3rem;font-size:1.25rem}
+p{margin:.3rem 0 .8rem;max-width:62ch}
+.wrap{max-width:1100px;margin:0 auto;padding:1rem}
+.hide{display:none!important}
+button{cursor:pointer;font-size:1rem}
+:focus-visible{outline:3px solid var(--ember);outline-offset:2px}
+.hint{color:var(--mute);font-size:.92rem}
+/* intro */
+#intro{min-height:100vh;display:grid;align-items:center}
+.introgrid{display:grid;grid-template-columns:1fr 1.1fr;gap:1.5rem;align-items:center}
+.mapbox{background:radial-gradient(circle at 50% 60%,#3a2418,#1d1510 70%);border:1px solid var(--line);border-radius:18px;padding:.5rem}
+.mapbox svg{width:100%;height:auto;display:block}
+.land{fill:#3b2b20;stroke:#6b5240;stroke-width:1.5}
+.spot{cursor:pointer}
+.spot .pulse{fill:var(--ember);opacity:.5;transform-box:fill-box;transform-origin:center;animation:pl 1.8s ease-out infinite}
+.spot:hover .core,.spot:focus .core{fill:#ffd08a}
+.spot text{fill:var(--ink);font:600 11px 'Bricolage Grotesque',sans-serif;paint-order:stroke;stroke:#1d1510;stroke-width:3px}
+@keyframes pl{from{transform:scale(1);opacity:.6}to{transform:scale(3.4);opacity:0}}
+.badge{display:inline-block;border:1px solid var(--ember);color:var(--ember);border-radius:99px;padding:.15rem .8rem;font:.85rem 'Bricolage Grotesque',sans-serif;margin-bottom:1rem}
+/* simulasi: satu adegan + satu rantai */
+.layout{display:grid;grid-template-columns:1.25fr 1fr;gap:1.2rem;align-items:start}
+.scene{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-top:.3rem}
+.scene canvas{width:100%;height:auto;display:block;border-radius:14px;border:1px solid var(--line);background:#1a120d}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;margin-top:.5rem}
+.hud div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:.3rem .5rem;font:.75rem 'Bricolage Grotesque',sans-serif;color:var(--mute)}
+.hud b{display:block;font-size:1.05rem;color:var(--ink)}
+.nd{background:var(--panel);border:1px solid var(--line);border-left:6px solid var(--line);border-radius:14px;padding:.7rem 1rem;opacity:.5}
+.nd.on{opacity:1;border-left-color:var(--c)}
+.nd header{display:flex;gap:.6rem;align-items:center}
+.tag{font:700 .75rem 'Bricolage Grotesque',sans-serif;color:#1d1510;background:var(--c);border-radius:99px;padding:.1rem .6rem;flex:none}
+.nd h2{font-size:1.05rem;margin:0}
+.nd .body{margin-top:.5rem}
+.cn{margin:0 0 0 1.1rem;padding:.1rem 0 .1rem 1rem;border-left:3px dashed var(--line);color:var(--mute);font:.85rem 'Bricolage Grotesque',sans-serif;min-height:1.6rem}
+.cn.on{border-left:3px solid var(--ember);color:var(--ember)}
+label{display:block;font-size:.92rem;margin:.6rem 0 .15rem}
+input[type=range]{width:100%;accent-color:var(--ember)}
+.chk{display:flex;gap:.5rem;align-items:center}
+.meter{height:11px;background:#1a120d;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+.meter i{display:block;height:100%;width:0;transition:width .4s}
+.mrow{display:flex;justify-content:space-between;font:600 .82rem 'Bricolage Grotesque',sans-serif;margin-top:.45rem}
+.btn{background:var(--ember);color:#1d1510;border:0;border-radius:10px;padding:.55rem 1.1rem;font-weight:700}
+.btn.alt{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.more{margin-top:.7rem;display:flex;gap:.7rem;align-items:center;flex-wrap:wrap}
+.eq{font:700 1.05rem 'Bricolage Grotesque',sans-serif;background:#1a120d;border:1px solid var(--line);border-radius:10px;padding:.55rem .7rem;margin:.5rem 0}
+.pills{display:flex;gap:.4rem;flex-wrap:wrap;margin:.4rem 0}
+.pill{border:1px solid var(--line);border-radius:99px;padding:.15rem .7rem;font:.88rem 'Bricolage Grotesque',sans-serif;display:flex;gap:.35rem;align-items:center}
+.cat{display:grid;grid-template-columns:repeat(5,1fr);height:12px;border-radius:6px;position:relative;margin:.5rem 0}
+.cat span:nth-child(1){background:#4caf50}.cat span:nth-child(2){background:#3b82c4}.cat span:nth-child(3){background:#e6c229}.cat span:nth-child(4){background:#e5622e}.cat span:nth-child(5){background:#7a1f1f}
+.mk{position:absolute;top:-4px;width:4px;height:20px;background:#fff;border-radius:2px;transition:left .4s}
+.chip{background:#1a120d;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:.25rem .6rem;font-size:.9rem}
+.chip[aria-pressed=true]{opacity:.5;text-decoration:line-through}
+.chip.dead{opacity:.35;text-decoration:line-through}
+.fin{margin-top:1rem;border:2px solid var(--ember);border-radius:14px;padding:1rem;background:rgba(255,122,26,.07)}
+@media(max-width:820px){.introgrid,.layout{grid-template-columns:1fr}body{font-size:16px}.hud{grid-template-columns:repeat(2,1fr)}.hud b{font-size:.95rem}}
+
+/* tambahan: komponen media pembelajaran (model Fogarty: webbed) */
+.guide{margin:2rem 0 1rem;border-top:1px solid var(--line);padding-top:1.4rem}
+.guide h2{font-size:1.5rem;margin-bottom:.6rem}
+.gcols{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:.9rem 1.1rem}
+.card h3{margin:0 0 .4rem;font-size:1.05rem}
+.card ul,.card ol{margin:.2rem 0 .2rem 1.1rem;padding:0}.card li{margin:.25rem 0}
+.web{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;position:relative;margin:.6rem 0}
+.web .hub{grid-column:1/-1;justify-self:center;background:var(--ember);color:#1d1510;font:800 1.05rem 'Bricolage Grotesque',sans-serif;border-radius:99px;padding:.35rem 1.2rem}
+.web .sp{background:#1a120d;border:1px solid var(--line);border-top:4px solid var(--c);border-radius:10px;padding:.5rem .7rem;font-size:.9rem;line-height:1.35}
+.web .sp b{display:block;font:700 .95rem 'Bricolage Grotesque',sans-serif;color:var(--c)}
+.thread{font-size:.9rem;color:var(--mute)}
+.q{border-top:1px dashed var(--line);padding:.7rem 0}
+.q .opts{display:grid;gap:.4rem;margin:.4rem 0}
+.q .opts button{text-align:left;background:#1a120d;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:.45rem .7rem;font:inherit;font-size:.95rem}
+.q .opts button.ok{border-color:#8fc27c;background:rgba(143,194,124,.15)}
+.q .opts button.no{border-color:#d9534f;background:rgba(217,83,79,.15)}
+.q .exp{font-size:.9rem;color:var(--mute);margin:.2rem 0}
+textarea{width:100%;min-height:4.5rem;background:#1a120d;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:.5rem;font:inherit;font-size:.95rem}
+details.card summary{cursor:pointer;font:700 1rem 'Bricolage Grotesque',sans-serif}
+dt{font:700 .95rem 'Bricolage Grotesque',sans-serif;color:var(--ember);margin-top:.5rem}dd{margin:0}
+@media(max-width:820px){.gcols{grid-template-columns:1fr}}
+.seq{list-style:none;margin:.5rem 0;padding:0}
+.seq li{position:relative;background:#1a120d;border:1px solid var(--line);border-left:5px solid var(--c);border-radius:10px;padding:.45rem .7rem;margin:0 0 1.3rem;font-size:.9rem;line-height:1.35}
+.seq li:last-child{margin-bottom:0}
+.seq li b{display:block;font:700 .95rem 'Bricolage Grotesque',sans-serif;color:var(--c)}
+.seq .br{position:absolute;left:1rem;top:100%;padding-top:.15rem;font:.8rem 'Bricolage Grotesque',sans-serif;color:var(--ember)}
+.tag.st{white-space:nowrap}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;list-style:none;margin:.5rem 0 1rem;padding:0}
+.steps li{display:flex;gap:.35rem;align-items:center;justify-content:center;background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:.3rem .4rem;font:.8rem 'Bricolage Grotesque',sans-serif;color:var(--mute);transition:.3s}
+.steps li.act{border-color:var(--ember);color:var(--ink)}
+.steps li.done{background:rgba(143,194,124,.15);border-color:#8fc27c;color:var(--ink)}
+.pred{margin-top:.8rem;border-top:1px dashed var(--line);padding-top:.5rem}
+.pg{background:#1a120d;color:var(--ink);border:1px solid var(--line);border-radius:99px;padding:.25rem .8rem;font:.9rem 'Bricolage Grotesque',sans-serif}
+.pg.sel{border-color:var(--ember);background:rgba(255,122,26,.18)}
+</style>
+</head>
+<body>
+
+<section id="intro"><div class="wrap"><div class="introgrid">
+ <div>
+  <span class="badge">Simulasi observasi · IPA Terpadu</span>
+  <h1>Kalimantan sedang terbakar.</h1>
+  <p>Sebagai pengamat lapangan, kamu akan menelusuri satu rantai kejadian yang berjalan terus: dari iklim, tanah, api, kalor, asap, hingga napas manusia dan satwa. Semua bidang sains hadir dalam satu adegan yang sama.</p>
+  <p class="hint">Data pada peta ini ilustrasi untuk pembelajaran. Klik satu titik api untuk mulai.</p>
+ </div>
+ <div class="mapbox"><svg viewBox="0 0 400 360" role="img" aria-label="Peta ilustrasi Kalimantan dengan tiga titik api">
+  <defs><radialGradient id="hz"><stop offset="0" stop-color="#9aa0a6" stop-opacity=".55"/><stop offset="1" stop-color="#9aa0a6" stop-opacity="0"/></radialGradient></defs>
+  <polygon class="land" points="170,30 230,20 290,50 330,40 350,90 320,150 350,200 320,270 260,320 200,330 150,300 90,300 60,240 40,180 80,130 120,100 150,60"/>
+  <circle cx="215" cy="240" r="70" fill="url(#hz)"/><circle cx="110" cy="175" r="50" fill="url(#hz)"/><circle cx="270" cy="285" r="40" fill="url(#hz)"/>
+  <g class="spot" tabindex="0" role="button" data-n="Kalimantan Tengah" aria-label="Titik api Kalimantan Tengah"><circle class="pulse" cx="215" cy="240" r="9"/><circle class="core" cx="215" cy="240" r="8" fill="#ff7a1a"/><text x="228" y="226">Kalimantan Tengah</text></g>
+  <g class="spot" tabindex="0" role="button" data-n="Kalimantan Barat" aria-label="Titik api Kalimantan Barat"><circle class="pulse" cx="110" cy="175" r="9"/><circle class="core" cx="110" cy="175" r="8" fill="#ff7a1a"/><text x="60" y="158">Kalimantan Barat</text></g>
+  <g class="spot" tabindex="0" role="button" data-n="Kalimantan Selatan" aria-label="Titik api Kalimantan Selatan"><circle class="pulse" cx="270" cy="285" r="9"/><circle class="core" cx="270" cy="285" r="8" fill="#ff7a1a"/><text x="282" y="304">Kalimantan Selatan</text></g>
+ </svg></div>
+</div>
+ <div class="guide">
+  <h2>Panduan belajar</h2>
+  <div class="gcols">
+   <div class="card"><h3>Model keterpaduan: Sequenced (Fogarty)</h3>
+    <p>Empat bidang IPA tetap dipelajari per bidang, tetapi urutannya disusun agar topik yang saling berkaitan datang berurutan mengikuti satu rantai kejadian Karhutla.</p>
+    <ol class="seq">
+     <li style="--c:var(--g)"><b>Tahap 1 · Geografi</b>El Niño, kemarau, gambut mengering<span class="br">→ gambut kering menjadi bahan bakar</span></li>
+     <li style="--c:var(--k)"><b>Tahap 2 · Kimia</b>Oksidasi eksoterm, CO, CO₂, PM2.5<span class="br">→ kalor dan asap menyebar</span></li>
+     <li style="--c:var(--f)"><b>Tahap 3 · Fisika</b>Konduksi, konveksi, radiasi, pembiasan cahaya<span class="br">→ udara berasap dihirup makhluk hidup</span></li>
+     <li style="--c:var(--b)"><b>Tahap 4 · Biologi</b>ISPA, jaring-jaring makanan, keanekaragaman hayati</li>
+    </ol>
+    <p class="thread">Aturan urutan: tiap tahap memakai hasil tahap sebelumnya, jadi tahap berikutnya terbuka setelah tahap sebelumnya dikerjakan.</p>
+   </div>
+   <div class="card"><h3>Tujuan pembelajaran</h3>
+    <p>Setelah menyelesaikan simulasi, kamu mampu:</p>
+    <ol>
+     <li>menjelaskan pengaruh El Niño dan kemarau terhadap kekeringan gambut;</li>
+     <li>membedakan pembakaran sempurna dan tidak sempurna beserta hasilnya;</li>
+     <li>menunjukkan konduksi, konveksi, dan radiasi pada kebakaran;</li>
+     <li>menghubungkan asap dengan jarak pandang, kesehatan, dan rantai makanan;</li>
+     <li>merumuskan tindakan untuk memutus rantai kejadian.</li>
+    </ol>
+   </div>
+   <div class="card"><h3>Petunjuk penggunaan</h3>
+    <ol>
+     <li>Klik satu titik api pada peta.</li>
+     <li>Ubah pengaturan pada tiap mata rantai, lalu tekan <b>Telusuri akibatnya</b>.</li>
+     <li>Amati adegan dan angka di atasnya yang ikut berubah.</li>
+     <li>Setelah rantai selesai, kerjakan evaluasi dan refleksi di bagian bawah.</li>
+    </ol>
+    <p class="hint">Perkiraan waktu: 30–40 menit (1 pertemuan). Cocok untuk SMP kelas VII–IX.</p>
+   </div>
+   <div class="card"><h3>Kegiatan pada media ini</h3>
+    <ul><li><b>Mengamati:</b> peta dan adegan</li><li><b>Menanya:</b> apa yang terjadi bila ... diubah?</li><li><b>Mencoba:</b> geser pengaturan, picu sumber panas</li><li><b>Menalar:</b> hubungkan antarmata rantai</li><li><b>Mengomunikasikan:</b> refleksi tertulis</li></ul>
+   </div>
+  </div>
+ </div>
+</div></section>
+
+<section id="sim" class="hide"><div class="wrap">
+ <ol class="steps" id="steps" aria-label="Kemajuan tahap"><li><span class="ic">1</span>Geografi</li><li><span class="ic">2</span>Kimia</li><li><span class="ic">3</span>Fisika</li><li><span class="ic">4</span>Biologi</li></ol>
+ <div class="layout">
+  <div class="scene">
+   <div class="pills" style="margin:.1rem 0 .5rem"><button class="pg sel" id="v2">Adegan 2D</button><button class="pg" id="v3">Model 3D</button></div>
+   <canvas id="cv" width="800" height="420" role="img" aria-label="Adegan hutan gambut yang berubah mengikuti rantai kejadian"></canvas>
+   <div id="c3" class="hide"><canvas id="cv3" width="800" height="420" role="img" aria-label="Model 3D penampang gambut yang dapat diputar"></canvas><p class="hint" id="h3d">Seret untuk memutar, gulir untuk zoom. Satwa, warga yang batuk, dan asap mengikuti pengaturan serta tahap rantai.</p></div>
+   <div class="hud" aria-live="polite"><div>Kekeringan gambut<b id="h1">-</b></div><div>PM2.5 (relatif)<b id="h2">-</b></div><div>Jarak pandang<b id="h3">-</b></div><div>ISPU<b id="h4">-</b></div></div>
+  </div>
+  <div id="chain"></div>
+ </div>
+
+ <div class="hide" id="post">
+  <div class="card" style="margin-top:1.2rem"><h2>Putus rantai: apa yang bisa diubah?</h2>
+   <p>Pilih tindakan, lalu lihat efeknya pada kejadian yang baru kamu telusuri.</p>
+   <div class="pills" id="cut"><label class="pill chk"><input type="checkbox" id="ct1" onchange="cutUpd()"> Basahi gambut, sekat kanal <small class="hint">(Geografi)</small></label><label class="pill chk"><input type="checkbox" id="ct2" onchange="cutUpd()"> Larang buka lahan dengan membakar <small class="hint">(Kimia)</small></label><label class="pill chk"><input type="checkbox" id="ct3" onchange="cutUpd()"> Patroli dan padamkan api dini <small class="hint">(Fisika)</small></label></div>
+   <div class="mrow"><span>Kekeringan lahan</span><span id="cdv">0%</span></div><div class="meter"><i id="cd" style="background:#ff7a1a"></i></div>
+   <div class="mrow"><span>ISPU (skala 0–380)</span><span id="cpv">0%</span></div><div class="meter"><i id="cp" style="background:#9aa0a6"></i></div>
+   <div class="eq" id="cs"></div><p id="cm"></p></div>
+  <div class="card" style="margin-top:1rem"><h2>Evaluasi: uji pemahamanmu</h2>
+   <div id="quiz"></div><p class="ui" id="score"><b>Skor: 0 / 5</b></p></div>
+  <div class="card" style="margin-top:1rem"><h2>Refleksi</h2>
+   <label for="r1">1. Mata rantai mana yang paling mudah diputus manusia? Mengapa?</label><textarea id="r1"></textarea>
+   <label for="r2">2. Bidang IPA apa yang paling membantumu memahami karhutla, dan apa alasannya?</label><textarea id="r2"></textarea>
+   <p class="hint">Jawaban tidak disimpan. Catat atau diskusikan dengan temanmu.</p></div>
+  <details class="card" style="margin-top:1rem"><summary>Glosarium</summary><dl>
+   <dt>El Niño</dt><dd>Anomali iklim yang menggeser hujan menjauhi Indonesia.</dd>
+   <dt>Gambut</dt><dd>Tanah dari sisa tumbuhan tertimbun, kaya karbon, mudah terbakar saat kering.</dd>
+   <dt>Reaksi eksoterm</dt><dd>Reaksi yang melepaskan kalor ke lingkungan.</dd>
+   <dt>Pembakaran tidak sempurna</dt><dd>Pembakaran saat oksigen terbatas, menghasilkan CO dan jelaga.</dd>
+   <dt>PM2.5</dt><dd>Partikel halus berdiameter ≤ 2,5 mikrometer yang dapat masuk ke paru-paru.</dd>
+   <dt>ISPU</dt><dd>Indeks Standar Pencemar Udara, skala kualitas udara.</dd>
+   <dt>Konduksi, konveksi, radiasi</dt><dd>Tiga cara perpindahan kalor: lewat zat padat, lewat aliran fluida, lewat pancaran.</dd>
+   <dt>Produsen, tingkat trofik</dt><dd>Produsen membuat makanan sendiri; tingkat trofik adalah urutan perpindahan energi dalam rantai makanan.</dd>
+  </dl></details>
+  <p class="hint">Catatan: data dan angka pada simulasi adalah ilustrasi untuk pembelajaran. Kerangka keterpaduan (model Sequenced): Fogarty, R. (1991), <i>How to Integrate the Curricula</i>. Sumber data resmi karhutla dan ISPU: KLHK dan BMKG.</p>
+ </div>
+ <script>
+ const QZ=[
+ {d:'Geografi',q:'El Niño memperpanjang kemarau karena ...',o:['suhu laut Indonesia turun drastis','hujan bergeser menjauhi wilayah Indonesia','angin berhenti bertiup'],a:1,e:'El Niño menggeser pusat hujan, sehingga Indonesia lebih kering.'},
+ {d:'Kimia',q:'Saat oksigen terbatas, pembakaran gambut menghasilkan lebih banyak ...',o:['CO₂ dan uap air saja','gas oksigen murni','CO dan partikel halus (PM2.5)'],a:2,e:'Pembakaran tidak sempurna menghasilkan CO dan jelaga.'},
+ {d:'Fisika',q:'Udara panas yang naik dan membawa asap adalah contoh perpindahan kalor secara ...',o:['konduksi','konveksi','radiasi'],a:1,e:'Konveksi adalah perpindahan kalor bersama aliran zat (udara).'},
+ {d:'Biologi',q:'Gas CO berbahaya bagi manusia karena ...',o:['mengikat hemoglobin sehingga oksigen darah berkurang','membuat paru-paru membesar','menghalangi cahaya masuk ke mata'],a:0,e:'CO terikat pada hemoglobin lebih kuat daripada oksigen.'},
+ {d:'Terpadu',q:'Tindakan paling efektif memutus rantai dari awal adalah ...',o:['menunggu hujan turun','memakai masker saat asap tebal','menjaga muka air gambut tetap tinggi (basah)'],a:2,e:'Gambut yang basah sulit terbakar, jadi rantai terputus sejak mata rantai kedua.'}];
+ function cutUpd(){if(!$('ct1'))return;const rw=$('ct1').checked,nb=$('ct2').checked,pt=$('ct3').checked;
+  const d=S.dry*(rw?.45:1)/100,o=S.o2/100,lit=S.lit&&!nb;
+  const pm=lit?d*(.3+.7*(1-o))*(pt?.4:1):0,ip=Math.round(pm*380),vis=10/(1+12*pm);
+  setBar('cd',d);setBar('cp',Math.min(1,ip/380));
+  $('cs').innerHTML=`ISPU <b>${ip}</b> (${CATS.find(x=>ip<=x[0])[1]}) · Jarak pandang <b>${vis.toFixed(1)} km</b>`;
+  $('cm').textContent=(rw||nb||pt)?(ip<=50?'Rantai terputus: udara tetap baik.':ip<S.ispu?`ISPU turun dari ${S.ispu} menjadi ${ip}. Makin awal mata rantai diputus, makin besar manfaatnya.`:'Belum berpengaruh pada kejadianmu. Coba tindakan lain.'):'Pilih tindakan untuk melihat efeknya.'}
+ let sc=0;
+ function buildQuiz(){sc=0;$('score').innerHTML='<b>Skor: 0 / 5</b>';
+  $('quiz').innerHTML=QZ.map((z,i)=>`<div class="q" id="q${i}"><span class="tag" style="--c:var(--ember)">${z.d}</span><p><b>${i+1}.</b> ${z.q}</p><div class="opts">${z.o.map((o,j)=>`<button data-i="${i}" data-j="${j}">${o}</button>`).join('')}</div><div class="exp" id="e${i}"></div></div>`).join('');
+  document.querySelectorAll('#quiz .opts button').forEach(b=>b.onclick=()=>{const i=+b.dataset.i,j=+b.dataset.j,z=QZ[i],bs=document.querySelectorAll(`#q${i} button`);
+   if(bs[0].disabled)return;bs.forEach(x=>x.disabled=true);bs[z.a].classList.add('ok');
+   if(j===z.a){sc++}else b.classList.add('no');
+   $('e'+i).textContent=(j===z.a?'Benar. ':'Belum tepat. ')+z.e;$('score').innerHTML='<b>Skor: '+sc+' / 5</b>'});
+  ['r1','r2'].forEach(k=>$(k).value='');document.querySelectorAll('#cut input').forEach(x=>x.checked=false)}
+ </script>
+</div></section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const S={place:'',weeks:0,nino:false,o2:70,lit:false,n:1,days:5,man:{},k1:true,k2:true,k3:true,dry:0,pm:0,co:0,co2:0,heat:0,vis:10,ispu:0};
+const SP={a:['Tumbuhan gambut','🌿',null],b:['Pohon berbuah','🌳',null],c:['Serangga','🐛',['a']],d:['Rusa','🦌',['a']],e:['Orangutan','🦧',['b']],f:['Burung','🐦',['c']],g:['Macan dahan','🐆',['d','f']]};
+const auto=k=>S.n>=8&&((k==='a'&&S.ispu>100)||(k==='b'&&S.ispu>200));
+const alive=k=>!S.man[k]&&!auto(k)&&(!SP[k][2]||SP[k][2].some(alive));
+const bar=(id,l,col)=>`<div class="mrow"><span>${l}</span><span id="${id}v">0%</span></div><div class="meter"><i id="${id}" style="background:${col}"></i></div>`;
+const setBar=(id,v)=>{$(id).style.width=Math.round(v*100)+'%';$(id+'v').textContent=Math.round(v*100)+'%'};
+
+const NODES=[
+ {d:'Geografi',c:'--g',t:'Kemarau panjang dan El Niño',br:'mengeringkan',b:`<p>El Niño adalah anomali iklim yang menggeser hujan menjauh dari Indonesia, sehingga kemarau memanjang.</p>
+  <label for="weeks">Lama kemarau: <b id="wk"></b> minggu</label><input id="weeks" type="range" min="0" max="16" value="0">
+  <label class="chk"><input id="nino" type="checkbox"> Aktifkan El Niño</label>
+  <div class="pred"><b>Tebak dulu:</b> dengan El Niño, berapa minggu kemarau sampai gambut ≥70% kering?<div class="pills" id="pred"><button class="pg" data-w="4">4 minggu</button><button class="pg" data-w="8">8 minggu</button><button class="pg" data-w="12">12 minggu</button><button class="pg" data-w="16">16 minggu</button></div><p class="hint" id="predfb"></p></div>`},
+ {d:'Geografi',c:'--g',t:'Lahan gambut mengering',br:'menyediakan bahan bakar karbon bagi',b:`<p>Gambut tersusun dari sisa tumbuhan yang tertimbun dan menyimpan cadangan karbon sangat besar. Saat muka air turun, gambut kering menjadi bahan bakar.</p>
+  ${bar('mo','Kadar air gambut','#2f78a8')}${bar('dr','Kekeringan lahan','#ff7a1a')}<div class="eq" id="vul"></div>`},
+ {d:'Kimia',c:'--k',t:'Sumber panas memicu oksidasi eksoterm',br:'melepaskan hasil reaksi berupa',b:`<p>Pembakaran adalah reaksi oksidasi yang melepaskan kalor (eksoterm). Atur oksigen untuk meniru api yang menyala atau membara di bawah tanah.</p>
+  <button class="btn" id="ign">Picu sumber panas</button><div class="eq" id="eq">Belum ada reaksi.</div>
+  <label for="o2">Ketersediaan oksigen: <b id="o2v"></b>%</label><input id="o2" type="range" min="10" max="100" value="70">`},
+ {d:'Kimia',c:'--k',t:'Emisi CO, CO₂, dan PM2.5',br:'kalor dan asap diteruskan oleh',b:`<p>Biomassa yang terbakar tidak hanya menghasilkan api. Oksigen terbatas menghasilkan lebih banyak CO dan partikel halus.</p>
+  ${bar('hb','Kalor dilepas','#ff7a1a')}${bar('c2','Karbon dioksida (CO₂)','#8fa67c')}${bar('c1','Karbon monoksida (CO)','#d9534f')}${bar('pm','Partikulat halus (PM2.5)','#9aa0a6')}`},
+ {d:'Fisika',c:'--f',t:'Kalor menyebar: konduksi, konveksi, radiasi',br:'asap yang membumbung membuat cahaya',b:`<p>Kalor merambat lewat tanah (konduksi), udara panas yang naik membawa asap (konveksi), dan pancaran ke sekitar (radiasi). Nyalakan atau matikan tiap cara pada adegan.</p>
+  <div class="pills"><label class="pill chk"><input type="checkbox" id="k1" checked> Konduksi</label><label class="pill chk"><input type="checkbox" id="k2" checked> Konveksi</label><label class="pill chk"><input type="checkbox" id="k3" checked> Radiasi</label></div>`},
+ {d:'Fisika',c:'--f',t:'Asap membiaskan cahaya, jarak pandang menurun',br:'udara berasap yang dihirup merusak',b:`<p>Partikel asap menghamburkan dan membiaskan cahaya Matahari. Cahaya yang sampai ke mata berkurang, jarak pandang tertutup kabut.</p><div class="eq" id="visx"></div>`},
+ {d:'Biologi',c:'--b',t:'Pernapasan manusia terganggu, ISPA',br:'ekosistem sekitar ikut',b:`<p>PM2.5 menembus paru-paru dan CO mengikat hemoglobin sehingga pasokan oksigen darah berkurang.</p>
+  <div class="eq">ISPU <span id="ip"></span>: <span id="ic"></span></div><div class="cat"><span></span><span></span><span></span><span></span><span></span><div class="mk" id="mk"></div></div>
+  <label for="dy">Lama terpapar asap: <b id="dyv"></b> hari</label><input id="dy" type="range" min="1" max="14" value="5"><p id="eff"></p>`},
+ {d:'Biologi',c:'--b',t:'Jaring-jaring makanan dan keanekaragaman hayati',br:'',b:`<p>Jika produsen hilang, energi ke seluruh tingkat trofik di atasnya terputus. Klik jenis makhluk hidup untuk menghilangkannya dan amati akibatnya pada adegan.</p>
+  <div class="pills" id="chips"></div><p class="hint" id="bio"></p>`}
+];
+
+function build(){
+ $('chain').innerHTML=NODES.map((n,i)=>`<article class="nd" id="n${i}" style="--c:var(${n.c})"><header><span class="tag st">Tahap ${({Geografi:1,Kimia:2,Fisika:3,Biologi:4})[n.d]} · ${n.d}</span><h2>${n.t}</h2></header><div class="body" id="b${i}">${n.b}<div class="more" id="m${i}"></div></div></article>`+(i<7?`<div class="cn" id="c${i}">↓ ${n.br}</div>`:'')).join('')+`<div class="fin hide" id="fin"><h2>Satu rantai, banyak bidang</h2><p id="fs"></p><p>Coba kembali ke awal rantai dan ubah lama kemarau. Perhatikan bahwa seluruh adegan dan angka di bawahnya ikut berubah. Renungkan: tindakan apa yang bisa memutus rantai ini sejak mata rantai pertama?</p><button class="btn alt" id="rs">Ulangi dari peta</button></div>`;
+ $('chips').innerHTML=Object.entries(SP).map(([k,v])=>`<button class="chip" data-k="${k}" aria-pressed="false">${v[1]} ${v[0]}</button>`).join('');
+ $('weeks').oninput=$('nino').onchange=()=>{S.weeks=+$('weeks').value;S.nino=$('nino').checked;upd()};
+ $('o2').oninput=()=>{S.o2=+$('o2').value;upd()};
+ $('ign').onclick=()=>{S.lit=true;$('ign').disabled=true;upd()};
+ ['k1','k2','k3'].forEach(k=>$(k).onchange=()=>{S[k]=$(k).checked});
+ $('dy').oninput=()=>{S.days=+$('dy').value;upd()};
+ document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{S.man[b.dataset.k]=!S.man[b.dataset.k];b.setAttribute('aria-pressed',!!S.man[b.dataset.k]);upd()});
+ document.querySelectorAll('#pred button').forEach(b=>b.onclick=()=>{S.pred=+b.dataset.w;upd()});
+ $('rs').onclick=()=>{$('sim').classList.add('hide');$('intro').classList.remove('hide');scrollTo(0,0)};
+}
+const gate=k=>k===2?S.dry>=70:k===3?S.lit:true;
+const gateHint=k=>k===2?'Gambut harus mencapai kekeringan 70% atau lebih agar mudah tersulut.':k===3?'Picu sumber panas terlebih dulu.':'';
+
+function calc(){
+ S.dry=Math.min(100,Math.round(S.weeks*(S.nino?6.2:3.6)));
+ const I=S.dry/100,o=S.o2/100;
+ S.co2=S.lit?I*(.35+.65*o):0;S.co=S.lit?I*(1-o)*.9+.05*I:0;S.pm=S.lit?I*(.3+.7*(1-o)):0;S.heat=S.lit?I*(.5+.5*o):0;
+ S.vis=10/(1+12*S.pm);S.ispu=Math.round(S.pm*380);
+}
+const CATS=[[50,'Baik'],[100,'Sedang'],[200,'Tidak sehat'],[300,'Sangat tidak sehat'],[999,'Berbahaya']];
+function upd(){
+ calc();const d=S.dry/100;
+ $('wk').textContent=S.weeks;setBar('mo',1-d);setBar('dr',d);
+ $('vul').textContent=S.dry<40?'Gambut masih basah dan aman.':S.dry<70?'Waspada: permukaan gambut mulai kering.':'Sangat rentan terbakar.';
+ $('o2v').textContent=S.o2;
+ $('eq').innerHTML=!S.lit?'Belum ada reaksi.':S.o2>=60?'C + O₂ → CO₂ + kalor<br><small class="hint">Pembakaran sempurna</small>':'2C + O₂ → 2CO + kalor, juga PM2.5<br><small class="hint">Pembakaran tidak sempurna</small>';
+ setBar('hb',S.heat);setBar('c2',S.co2);setBar('c1',S.co);setBar('pm',S.pm);
+ $('visx').innerHTML=`Jarak pandang: <span style="color:var(--ember)">${S.vis.toFixed(1)} km</span> <small class="hint">${S.vis<1?'Kabut asap pekat.':S.vis<5?'Kabut asap mengganggu.':'Udara relatif jernih.'}</small>`;
+ const c=CATS.findIndex(x=>S.ispu<=x[0]),sc=S.ispu*(.5+S.days/10);
+ $('ip').textContent=S.ispu;$('ic').textContent=CATS[c][1];$('mk').style.left=Math.min(98,S.ispu/380*100)+'%';$('dyv').textContent=S.days;
+ $('eff').textContent=sc<80?'PM2.5 sebagian tersaring rambut hidung dan lendir saluran napas.':sc<250?'PM2.5 menembus paru-paru. Gejala: batuk, mata perih, ISPA ringan.':'PM2.5 mencapai alveolus. Risiko ISPA berat dan serangan asma meningkat, terutama pada anak dan lansia.';
+ let nA=0;Object.keys(SP).forEach(k=>{const a=alive(k);nA+=a;const b=document.querySelector(`.chip[data-k=${k}]`);b.classList.toggle('dead',!a&&!S.man[k])});
+ $('bio').textContent=`Keanekaragaman hayati tersisa: ${nA} dari 7 jenis.`;
+ $('h1').textContent=S.n>=2?S.dry+'%':'-';$('h2').textContent=S.n>=4?Math.round(S.pm*100)+'%':'-';
+ $('h3').textContent=S.n>=6?S.vis.toFixed(1)+' km':'-';$('h4').textContent=S.n>=7?S.ispu+' · '+CATS[c][1]:'-';
+ for(let i=0;i<8;i++){
+  const on=i<S.n;$('n'+i).classList.toggle('on',on);$('b'+i).classList.toggle('hide',!on);
+  if(i<7)$('c'+i).classList.toggle('on',i+1<S.n);
+  const m=$('m'+i);
+  if(i===S.n-1&&i<7){const ok=gate(i+1);m.innerHTML=`<button class="btn" id="go">Telusuri akibatnya</button><span class="hint">${ok?'':gateHint(i+1)}</span>`;$('go').disabled=!ok;$('go').onclick=()=>{S.n++;upd();$('n'+(S.n-1)).scrollIntoView({block:'center',behavior:'smooth'})}}else m.innerHTML='';
+ }
+ $('fin').classList.toggle('hide',S.n<8);$('post').classList.toggle('hide',S.n<8);
+ document.querySelectorAll('#steps li').forEach((li,x)=>{const k=x+1,dn=k<4?S.n>2*k:S.n>=8,ac=!dn&&S.n>2*(k-1);li.classList.toggle('done',dn);li.classList.toggle('act',ac);li.querySelector('.ic').textContent=dn?'🏅':k});
+ document.querySelectorAll('#pred button').forEach(b=>b.classList.toggle('sel',S.pred===+b.dataset.w));
+ $('predfb').textContent=S.pred==null?'':(S.nino&&S.dry>=70)?`Tebakanmu ${S.pred} minggu. Dengan El Niño, gambut mencapai 70% pada minggu ke-12${S.pred===12?'. Tepat sekali!':S.pred<12?'. Ternyata lebih lambat dari tebakanmu.':'. Ternyata lebih cepat dari tebakanmu.'}`:'Buktikan tebakanmu: aktifkan El Niño dan geser lama kemarau.';
+ cutUpd();
+ $('fs').textContent=`Di ${S.place}, ${S.weeks} minggu kemarau${S.nino?' dengan El Niño':''} mengeringkan gambut ${S.dry}%. Oksidasi pada oksigen ${S.o2}% melepaskan PM2.5 sebesar ${Math.round(S.pm*100)}%, jarak pandang turun menjadi ${S.vis.toFixed(1)} km, ISPU mencapai ${S.ispu}, dan ${nA} dari 7 jenis makhluk hidup bertahan.`;
+}
+
+/* adegan tunggal */
+const cv=$('cv'),c=cv.getContext('2d');
+const mix=(a,b,k)=>`rgb(${Math.round(a[0]+(b[0]-a[0])*k)},${Math.round(a[1]+(b[1]-a[1])*k)},${Math.round(a[2]+(b[2]-a[2])*k)})`;
+const P=Array.from({length:260},()=>({x:340+Math.random()*120,y:290-Math.random()*250,v:.5+Math.random()*1.1,r:3+Math.random()*5,s:Math.random()*6}));
+let t=0;
+function draw(){
+ t++;const n=S.n,d=S.dry/100,pm=n>=4?S.pm:0,fire=S.lit&&n>=3;
+ c.clearRect(0,0,800,420);
+ c.fillStyle=mix([127,178,212],[196,150,96],Math.min(1,d*.5+pm));c.fillRect(0,0,800,290);
+ c.fillStyle='#ffd27a';c.beginPath();c.arc(60,55,22,0,7);c.fill();
+ c.fillStyle=mix([60,38,24],[176,140,96],d);c.fillRect(0,290,800,130);
+ const wy=290+d*130;c.fillStyle='rgba(47,120,168,.85)';c.fillRect(0,wy,800,420-wy);
+ c.fillStyle='#efe6d8';c.font='13px sans-serif';c.fillText('Gambut: simpanan karbon · muka air tanah',10,412);
+ if(d>.5){c.strokeStyle='#1d1510';c.lineWidth=2;for(let x=30;x<800;x+=90){c.beginPath();c.moveTo(x,290);c.lineTo(x+10,290+14*d);c.lineTo(x+4,290+26*d);c.stroke()}}
+ [70,190,560,640,720].forEach(x=>{c.fillStyle='#5a4030';c.fillRect(x-4,235,8,55);c.fillStyle=(n>=8&&!alive('b'))?'#2e2a26':mix([60,130,60],[150,120,60],d);c.beginPath();c.arc(x,225,28,0,7);c.fill()});
+ if(n<8||alive('a')){c.strokeStyle=mix([70,150,70],[150,120,60],d);c.lineWidth=2;for(let x=15;x<800;x+=26){c.beginPath();c.moveTo(x,290);c.lineTo(x+3,278);c.stroke()}}
+ if(fire){
+  const g=c.createRadialGradient(400,290,5,400,290,150);g.addColorStop(0,`rgba(255,140,40,${.25+S.heat*.4})`);g.addColorStop(1,'rgba(255,140,40,0)');c.fillStyle=g;c.fillRect(250,140,300,150);
+  for(let j=0;j<12;j++){const x=335+j*11,h=(24+S.heat*70)*(.6+.4*Math.sin(t/5+j*1.7));c.fillStyle=j%2?'#ffb02e':'#ff6a1a';c.beginPath();c.moveTo(x-7,290);c.lineTo(x,290-h);c.lineTo(x+7,290);c.fill()}
+ }
+ if(n>=5&&fire){
+  if(S.k1){const g=c.createRadialGradient(400,292,5,400,292,140);g.addColorStop(0,`rgba(255,122,26,${.3+S.heat*.6})`);g.addColorStop(1,'rgba(255,122,26,0)');c.fillStyle=g;c.fillRect(250,290,300,130);
+   c.strokeStyle='#ffb36b';c.lineWidth=2;for(let i=0;i<6;i++){const x=345+i*22,y=298+((t*.7+i*14)%70);c.beginPath();c.moveTo(x,y);c.lineTo(x,y+10);c.stroke()}
+   c.fillStyle='#fff';c.font='bold 13px sans-serif';c.fillText('konduksi',455,340)}
+  if(S.k3){for(let i=0;i<3;i++){const r=(t*1.1+i*45)%135;c.strokeStyle=`rgba(255,150,60,${1-r/135})`;c.lineWidth=2;c.beginPath();c.arc(400,285,r+30,Math.PI,0);c.stroke()}
+   c.fillStyle='#fff';c.font='bold 13px sans-serif';c.fillText('radiasi',545,180)}
+  if(S.k2){c.fillStyle='#fff';c.font='bold 13px sans-serif';c.fillText('konveksi: udara panas naik',415,40);c.strokeStyle='#fff';c.lineWidth=2;for(let i=0;i<3;i++){const x=395+i*28,y=210-((t*1.2+i*30)%90);c.beginPath();c.moveTo(x,y+14);c.lineTo(x,y);c.lineTo(x-5,y+6);c.moveTo(x,y);c.lineTo(x+5,y+6);c.stroke()}}
+ }
+ const cnt=n>=4?Math.round(pm*250):0;
+ for(let i=0;i<cnt;i++){const p=P[i];p.y-=p.v;p.x+=Math.sin(t/30+p.s)*.5+.35;p.r+=.004;if(p.y<0||p.x>800){p.y=285;p.x=340+Math.random()*120;p.r=3+Math.random()*5}
+  c.fillStyle=`rgba(90,85,80,${.25+pm*.4})`;c.beginPath();c.arc(p.x,p.y,p.r,0,7);c.fill()}
+ if(n>=6){for(let i=0;i<5;i++){const tx=160+i*120,k=1-Math.min(.9,pm)*.9;c.strokeStyle=`rgba(255,226,150,${.7*k})`;c.lineWidth=1.5;c.beginPath();c.moveTo(70,60);c.lineTo(tx,290);c.stroke();
+   if(pm>.15){c.strokeStyle=`rgba(255,226,150,${pm*.5})`;const mx=70+(tx-70)*.5,my=175,a=Math.sin(t/20+i)*.5+i;c.beginPath();c.moveTo(mx,my);c.lineTo(mx+Math.cos(a)*26,my+Math.sin(a)*26);c.stroke()}}}
+ if(n>=4){c.fillStyle=`rgba(120,110,100,${Math.min(.78,pm*.78)})`;c.fillRect(0,0,800,420)}
+ if(n>=7){c.fillStyle='#6b5240';c.fillRect(690,250,80,40);c.fillStyle='#8a3b2a';c.beginPath();c.moveTo(682,250);c.lineTo(730,222);c.lineTo(778,250);c.fill();
+  c.strokeStyle='#efe6d8';c.lineWidth=3;c.beginPath();c.arc(660,262,6,0,7);c.moveTo(660,268);c.lineTo(660,288);c.stroke();
+  c.fillStyle=`rgba(220,50,50,${Math.min(.9,S.ispu/300)})`;c.beginPath();c.arc(660,277,9,0,7);c.fill();
+  if(S.ispu>100&&Math.sin(t/12)>0){c.fillStyle='#fff';c.font='bold 13px sans-serif';c.fillText('uhuk!',625,248)}}
+ if(n>=8){c.font='30px sans-serif';[['c',20,288],['d',110,288],['e',255,288],['f',150,160],['g',510,288]].forEach(([k,x,y])=>{c.globalAlpha=alive(k)?1:.2;c.fillText(SP[k][1],x,y);if(!alive(k)){c.strokeStyle='#fff';c.lineWidth=2;c.beginPath();c.moveTo(x,y-26);c.lineTo(x+30,y);c.stroke()}});c.globalAlpha=1}
+ requestAnimationFrame(draw);
+}
+
+/* model 3D penampang gambut (three.js) */
+let T3=null;
+function init3(){
+ if(T3)return;T3={};
+ try{
+  const cv=$('cv3'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true});R.setSize(800,420,false);
+  const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(45,800/420,.1,100);
+  sc.add(new THREE.AmbientLight(0xffffff,.7));const dl=new THREE.DirectionalLight(0xffffff,.8);dl.position.set(5,10,6);sc.add(dl);
+  const g=new THREE.Group();sc.add(g),L=c=>new THREE.MeshLambertMaterial({color:c});
+  const peat=new THREE.Mesh(new THREE.BoxGeometry(8,2.4,5),L(0x3c2618));peat.position.y=-1.2;g.add(peat);
+  const water=new THREE.Mesh(new THREE.BoxGeometry(8.04,1,5.04),new THREE.MeshLambertMaterial({color:0x2f78a8,transparent:true,opacity:.7}));g.add(water);
+  const crowns=[];[[-3,-1.5],[-1.8,1.2],[2.8,-1],[3.2,1.5],[-3.2,1.3],[1.6,-1.8]].forEach(([x,z])=>{
+   const tr=new THREE.Mesh(new THREE.CylinderGeometry(.12,.16,1.2,8),L(0x5a4030));tr.position.set(x,.6,z);g.add(tr);
+   const cr=new THREE.Mesh(new THREE.ConeGeometry(.8,1.7,10),L(0x3c8a3c));cr.position.set(x,1.9,z);g.add(cr);crowns.push(cr)});
+  const flames=[];for(let i=0;i<8;i++){const f=new THREE.Mesh(new THREE.ConeGeometry(.28,1,8),new THREE.MeshBasicMaterial({color:i%2?0xffb02e:0xff6a1a}));f.position.set((i-3.5)*.22,.5,Math.sin(i*2)*.4);f.visible=false;g.add(f);flames.push(f)}
+  const smM=new THREE.MeshBasicMaterial({color:0x8a8580,transparent:true,opacity:.5}),sm=[];for(let i=0;i<120;i++){const m=new THREE.Mesh(new THREE.SphereGeometry(.22,8,8),smM);m.userData={y:Math.random()*6,x:(Math.random()-.5)*.8,z:(Math.random()-.5)*.8,v:.02+Math.random()*.03,s:Math.random()*6};m.visible=false;g.add(m);sm.push(m)}
+  const spr=(txt,sz,em)=>{const W=em?128:256,H=em?128:64,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');x.textAlign='center';x.textBaseline='middle';
+   if(em){x.font='96px sans-serif';x.fillText(txt,64,70)}else{x.font='bold 30px sans-serif';x.lineWidth=6;x.strokeStyle='#1d1510';x.strokeText(txt,128,32);x.fillStyle='#fff';x.fillText(txt,128,32)}
+   const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false}));s.scale.set(em?sz:sz*4,sz,1);s.visible=false;g.add(s);return s};
+  const grass=new THREE.Mesh(new THREE.BoxGeometry(8,.06,5),L(0x3c8a3c));grass.position.y=.03;g.add(grass);
+  const slab=new THREE.Mesh(new THREE.BoxGeometry(2.8,2.4,5),L(0x4a372a));slab.position.set(5.4,-1.2,0);g.add(slab);
+  const house=new THREE.Group();const hb=new THREE.Mesh(new THREE.BoxGeometry(1,.8,1),L(0x6b5240));hb.position.y=.4;const hr=new THREE.Mesh(new THREE.ConeGeometry(.85,.6,4),L(0x8a3b2a));hr.position.y=1.1;hr.rotation.y=Math.PI/4;house.add(hb,hr);house.position.set(5.9,0,-1.2);house.visible=false;g.add(house);
+  const person=new THREE.Group();const pb=new THREE.Mesh(new THREE.CylinderGeometry(.12,.15,.7,8),L(0xefe6d8));pb.position.y=.35;const ph=new THREE.Mesh(new THREE.SphereGeometry(.15,10,10),L(0xefe6d8));ph.position.y=.88;
+  const chest=new THREE.Mesh(new THREE.SphereGeometry(.09,8,8),new THREE.MeshBasicMaterial({color:0xdc3232,transparent:true,opacity:0}));chest.position.set(0,.55,.13);person.add(pb,ph,chest);person.position.set(5,0,1.3);person.visible=false;g.add(person);
+  const lbC=spr('uhuk!',.5);lbC.position.set(5,1.6,1.3);
+  const sun=new THREE.Mesh(new THREE.SphereGeometry(.6,16,12),new THREE.MeshBasicMaterial({color:0xffd27a}));sun.position.set(-5.5,6.5,-2);g.add(sun);
+  const rayM=new THREE.LineBasicMaterial({color:0xffe296,transparent:true,opacity:.7}),rays=[0,1,2,3,4].map(i=>{const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints([sun.position.clone(),new THREE.Vector3(-3.2+i*1.7,0,.6)]),rayM);l.visible=false;g.add(l);return l});
+  const cg=new THREE.Mesh(new THREE.SphereGeometry(1.5,16,12),new THREE.MeshBasicMaterial({color:0xff7a1a,transparent:true,opacity:.3,depthWrite:false}));cg.scale.y=.7;cg.visible=false;g.add(cg);
+  const rings=[0,1,2].map(()=>{const r=new THREE.Mesh(new THREE.TorusGeometry(1,.03,6,48),new THREE.MeshBasicMaterial({color:0xff9640,transparent:true}));r.rotation.x=Math.PI/2;r.position.y=.8;r.visible=false;g.add(r);return r});
+  const arr=[0,1,2].map(()=>{const a=new THREE.Mesh(new THREE.ConeGeometry(.15,.45,8),new THREE.MeshBasicMaterial({color:0xffffff}));a.visible=false;g.add(a);return a});
+  const lbK=spr('konduksi',.5),lbV=spr('konveksi',.5),lbR=spr('radiasi',.5);lbK.position.set(0,-.9,2.6);lbV.position.set(0,5.2,0);lbR.position.set(3.4,2.4,.5);
+  const an={};[['c',-3.4,.3,2.6,.6],['d',-.8,.5,2.7,1],['e',2.8,2.6,-.5,1.1],['f',-1.8,3.1,1.2,.8],['g',1.8,.6,2.6,1.2]].forEach(([k,x,y,z,s])=>{const m=spr(SP[k][1],s,1);m.position.set(x,y,z);m.userData.y=y;an[k]=m});
+  sc.fog=new THREE.FogExp2(0x786e64,0);const sm0=new THREE.Color(0x8a8580),sm1=new THREE.Color(0x151413);
+  let rx=.5,ry=.6,zoom=11,drag=false,lx=0,ly=0,t=0;cv.style.touchAction='none';
+  cv.onpointerdown=e=>{drag=true;lx=e.clientX;ly=e.clientY;cv.setPointerCapture(e.pointerId)};
+  cv.onpointermove=e=>{if(!drag)return;ry+=(e.clientX-lx)*.01;rx=Math.max(.05,Math.min(1.4,rx+(e.clientY-ly)*.01));lx=e.clientX;ly=e.clientY};
+  cv.onpointerup=cv.onpointercancel=()=>{drag=false};
+  cv.onwheel=e=>{e.preventDefault();zoom=Math.max(6,Math.min(18,zoom+e.deltaY*.01))};
+  const sky=new THREE.Color(),a=new THREE.Color(0x7fb2d4),b=new THREE.Color(0x786e64),p0=new THREE.Color(0x3c2618),p1=new THREE.Color(0xb08c60),k0=new THREE.Color(0x3c8a3c),k1=new THREE.Color(0x96783c),tmp=new THREE.Color();
+  (function tick(){
+   requestAnimationFrame(tick);if($('c3').classList.contains('hide'))return;t++;
+   const d=S.dry/100,pm=S.n>=4?S.pm:0,fire=S.lit&&S.n>=3;
+   if(!drag)ry+=.003;
+   cam.position.set(zoom*Math.sin(ry)*Math.cos(rx),1+zoom*Math.sin(rx),zoom*Math.cos(ry)*Math.cos(rx));cam.lookAt(0,.5,0);
+   sc.background=sky.copy(a).lerp(b,Math.min(1,d*.4+pm));
+   peat.material.color.copy(p0).lerp(p1,d);
+   const h=2.4*(1-d)+.05;water.scale.y=h;water.position.y=-2.4+h/2;
+   crowns.forEach(c=>c.material.color.copy(k0).lerp(k1,d));
+   flames.forEach((f,i)=>{f.visible=fire;const s=(.5+S.heat*1.6)*(.7+.3*Math.sin(t/5+i*1.7));f.scale.y=s;f.position.y=s/2})
+   ;sm.forEach((m,i)=>{const u=m.userData;m.visible=S.n>=4&&i<Math.round(pm*120);u.y+=u.v;if(u.y>6)u.y=0;m.position.set(u.x+u.y*.25+Math.sin(t/30+u.s)*.15,.6+u.y,u.z);m.scale.setScalar(1+u.y*.25)});
+   const n=S.n,isp=S.ispu,h5=n>=5&&fire;
+   if(n>=8&&!alive('b'))crowns.forEach(c=>c.material.color.set(0x2e2a26));
+   grass.visible=n<8||alive('a');grass.material.color.copy(k0).lerp(k1,d);
+   smM.color.copy(sm0).lerp(sm1,Math.min(1,pm*1.3));smM.opacity=.35+pm*.45;
+   rayM.opacity=.7*(1-Math.min(.9,pm)*.9);rays.forEach(r=>r.visible=n>=6);
+   cg.visible=h5&&S.k1;cg.material.opacity=.15+S.heat*.35;
+   rings.forEach((r,i)=>{r.visible=h5&&S.k3;const q=(t*.02+i/3)%1;r.scale.setScalar(1.2+q*3.5);r.material.opacity=(1-q)*.8});
+   arr.forEach((a,i)=>{a.visible=h5&&S.k2;const q=(t*.012+i/3)%1;a.position.set(-.7+i*.7,1+q*3.5,.3)});
+   lbK.visible=h5&&S.k1;lbV.visible=h5&&S.k2;lbR.visible=h5&&S.k3;
+   ['c','d','e','f','g'].forEach(k=>{const m=an[k];m.visible=n>=8;m.material.opacity=alive(k)?1:.15;if(k==='f')m.position.y=m.userData.y+Math.sin(t/20)*.2});
+   house.visible=person.visible=n>=7;const co=n>=7&&isp>100;lbC.visible=co&&Math.sin(t/12)>0;person.rotation.z=co?Math.sin(t/4)*.12:0;chest.material.opacity=Math.min(.9,isp/300);
+   sc.fog.density=pm*.055;sc.fog.color.copy(sc.background);
+   R.render(sc,cam)})();
+ }catch(err){$('h3d').textContent='Model 3D tidak dapat ditampilkan di perangkat ini (WebGL tidak tersedia).';$('cv3').classList.add('hide')}
+}
+$('v2').onclick=()=>{$('cv').classList.remove('hide');$('c3').classList.add('hide');$('v2').classList.add('sel');$('v3').classList.remove('sel')};
+$('v3').onclick=()=>{if(!window.THREE){$('h3d').textContent='Pustaka 3D gagal dimuat.'}else init3();$('cv').classList.add('hide');$('c3').classList.remove('hide');$('v3').classList.add('sel');$('v2').classList.remove('sel')};
+
+document.querySelectorAll('.spot').forEach(g=>{
+ const go=()=>{Object.assign(S,{place:g.dataset.n,weeks:0,nino:false,o2:70,lit:false,n:1,days:5,man:{},pred:null});build();buildQuiz();upd();
+  $('intro').classList.add('hide');$('sim').classList.remove('hide');scrollTo(0,0)};
+ g.onclick=go;g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}};
+});
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>
